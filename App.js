@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Text, TextInput, Image } from 'react-native';
 
 import axios from 'axios';
@@ -6,13 +6,13 @@ import styled from 'styled-components';
 import { API_KEY } from '@env'
 
 const arrivalcode = {
-	"0":"진입",
-	"1":"도착", 
-	"2":"출발", 
-	"3":"전역출발", 
-	"4":"전역진입", 
-	"5":"전역도착", 
-	"99":"운행중"
+	"0": "진입",
+	"1": "도착",
+	"2": "출발",
+	"3": "전역출발",
+	"4": "전역진입",
+	"5": "전역도착",
+	"99": "운행중"
 }
 
 const metroLine = {
@@ -41,16 +41,16 @@ const App = () => {
 
 	const [realTimeStationArrival, setRealTimeStationArrival] = useState([]);
 	const [searchWord, setsearchWord] = useState("")
-	
+
 	const getRealTimeStationArrival = async (searchWord) => {
 		await axios.get(`http://swopenapi.seoul.go.kr/api/subway/${API_KEY}/json/realtimeStationArrival/0/6/${searchWord}`)
 			.then((response) => {
 				console.log(response.data.realtimeArrivalList)
 				const realtimeArrivalList = response.data.realtimeArrivalList;
 				const sortedRealtimeArrivalList = realtimeArrivalList.sort((a, b) => {
-					if(parseInt(a.subwayId) > parseInt(b.subwayId)){
+					if (parseInt(a.subwayId) > parseInt(b.subwayId)) {
 						return 1;
-					} else{
+					} else {
 						return -1;
 					}
 				})
@@ -62,7 +62,7 @@ const App = () => {
 	}
 
 	const expectedArrivalTime = (sec) => {
-		
+
 		const minute = Math.floor(sec / 60);
 		const seconds = sec % 60;
 		return `${minute}분 ${seconds}초`;
@@ -77,34 +77,39 @@ const App = () => {
 					onChangeText={setsearchWord}
 					onSubmitEditing={() => getRealTimeStationArrival(searchWord)}
 				/>
-				<RefreshBtn>
+				<RefreshBtn
+					onPress = {() => getRealTimeStationArrival(searchWord)}
+				>
 					<Image
 						source={require('../whereabouts/Assets/refreshIcon.png')}
-						style={{width: 35, height: 35}}
+						style={{ width: 35, height: 35 }}
 					/>
 				</RefreshBtn>
 
 			</SearchBar>
 			<ScrollView>
-			{
-				realTimeStationArrival.map((v, i) => 
-					<View key={i}>
-						<Text
-							style={{color: metroLineColor[metroLine[v.subwayId]]}}
-						> 
-							{metroLine[v.subwayId]} {v.updnLine} ({v.trainLineNm})
-						</Text>
-						{
-							(v.barvlDt !== "0") ? (<Text> 열차도착예정시간: {expectedArrivalTime(v.barvlDt)}</Text>) : (<></>)
-						}
-						<Text> 열차번호: {v.btrainNo}</Text>
-						<Text> 첫번째도착메세지: {v.arvlMsg2}</Text>
-						<Text> 두번째도착메세지: {v.arvlMsg3}</Text>
-						<Text> 도착코드: {arrivalcode[v.arvlCd]}</Text>
-						<Hr/>
-					</View>
-				)
-			}
+				<RealTimeStationArrivalView>
+					{
+						realTimeStationArrival.map((v, i) =>
+							<View key={i}>
+								<Text
+									style={{ color: metroLineColor[metroLine[v.subwayId]] }}
+								>
+									{metroLine[v.subwayId]} {v.updnLine}
+								</Text>
+								<Text>
+									{v.trainLineNm} {v.btrainNo}
+								</Text>
+								{
+									(v.barvlDt !== "0") ? (<Text> 열차도착예정시간: {expectedArrivalTime(v.barvlDt)}</Text>) : (<></>)
+								}
+								<Text> 첫번째도착메세지: {v.arvlMsg2}</Text>
+								<Text> 두번째도착메세지: {v.arvlMsg3}</Text>
+								<Text> 도착코드: {arrivalcode[v.arvlCd]}</Text>
+							</View>
+						)
+					}
+				</RealTimeStationArrivalView>
 			</ScrollView>
 		</SafeAreaView>
 	)
@@ -143,8 +148,17 @@ const Hr = styled.View`
 	background-color: #b3b3b3;
 `;
 
+const RealTimeStationArrivalView = styled.View`
+	justify-content: center;
+	align-items: center;
+`;
+
 const View = styled.View`
 	margin-top: 10px;
+	border: 1px solid;
+	border-radius: 15px;
+	padding: 5px;
+	width: 95%;
 `;
 
 export default App;
