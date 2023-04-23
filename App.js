@@ -132,16 +132,17 @@ const App = () => {
 
 const SafeAreaView = styled.SafeAreaView`
     flex: 1;
+    background: #0080ff;
 `;
 
 const ScrollView = styled.ScrollView`
-    background: #f3edfa;
 `;
 
 const SearchBar = styled.View`
-    background-color: #ededed;
+    background: #0080ff;
     flex-direction: row;
     align-items: center;
+    
 `;
 
 const TextInputStyle = {
