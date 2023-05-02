@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {Text, TextInput, Image, Animated, BackHandler} from 'react-native';
+import {Text, TextInput, Animated, View} from 'react-native';
 
 import axios from 'axios';
 import styled from 'styled-components';
@@ -10,9 +10,6 @@ import MetroResponse from './MetroResponse';
 const App = () => {
     const [realTimeStationArrival, setRealTimeStationArrival] = useState([]);
     const [searchWord, setsearchWord] = useState('');
-    const [rotateAnimation, setRotateAnimation] = useState(
-        new Animated.Value(0),
-    );
 
     const getRealTimeStationArrival = async searchWord => {
         await axios
@@ -25,19 +22,15 @@ const App = () => {
                 const realtimeArrivalList = response.data.realtimeArrivalList;
                 const sortedRealtimeArrivalList = realtimeArrivalList.sort(
                     (a, b) => {
-                        // TODO
-                        // subwayId 가 시간 순으로 정렬
                         if (parseInt(a.subwayId) > parseInt(b.subwayId)) {
                             return 1;
-                        } else {
-                            return -1;
                         }
+                        return -1;
                     },
                 );
                 setRealTimeStationArrival(sortedRealtimeArrivalList);
             })
             .catch(error => {
-                console.log('byebye');
                 console.log(error);
             });
     };
@@ -47,6 +40,10 @@ const App = () => {
         const seconds = sec % 60;
         return `${minute}분 ${seconds}초`;
     };
+
+    const [rotateAnimation, setRotateAnimation] = useState(
+        new Animated.Value(0),
+    );
 
     const handleAnimation = () => {
         Animated.timing(rotateAnimation, {
@@ -69,6 +66,7 @@ const App = () => {
                 <TextInput
                     style={TextInputStyle}
                     placeholder={'역 명을 입력하세요.'}
+                    placeholderTextColor={'#626262'}
                     onChangeText={setsearchWord}
                     onSubmitEditing={() =>
                         getRealTimeStationArrival(searchWord)
@@ -96,33 +94,59 @@ const App = () => {
             <ScrollView>
                 <RealTimeStationArrivalView>
                     {realTimeStationArrival.map((v, i) => (
-                        <View key={i}>
-                            <Text
+                        <MetroArrivalInfoView key={i}>
+                            <View
                                 style={{
-                                    color: MetroResponse.metroLineColor[
-                                        MetroResponse.metroLine[v.subwayId]
-                                    ],
+                                    width: 80,
+                                    borderTopLeftRadius: 15,
+                                    borderBottomLeftRadius: 15,
+                                    backgroundColor:
+                                        MetroResponse.metroLineColor[
+                                            MetroResponse.metroLine[v.subwayId]
+                                        ],
+                                    opacity: 0.8,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
                                 }}>
-                                {MetroResponse.metroLine[v.subwayId]}{' '}
-                                {v.updnLine}
-                            </Text>
-                            <Text>
-                                {v.trainLineNm} {v.btrainNo}{' '}
-                            </Text>
-                            {v.barvlDt !== '0' ? (
-                                <Text>
-                                    열차도착예정시간:{' '}
-                                    {expectedArrivalTime(v.barvlDt)}
+                                <Text
+                                    style={{
+                                        fontSize: 40,
+                                        fontWeight: 'bold',
+                                        color: 'black',
+                                        opacity: 0.8,
+                                    }}>
+                                    {MetroResponse.metroLineNumber[v.subwayId]}
                                 </Text>
-                            ) : (
-                                <></>
-                            )}
-                            <Text>현재 위치: {v.arvlMsg3}</Text>
-                            <Text>현재 상태: {v.arvlMsg2}</Text>
-                            <Text>
-                                도착코드: {MetroResponse.arrivalCode[v.arvlCd]}
-                            </Text>
-                        </View>
+                            </View>
+                            <View>
+                                <Text
+                                    style={{
+                                        color: MetroResponse.metroLineColor[
+                                            MetroResponse.metroLine[v.subwayId]
+                                        ],
+                                    }}>
+                                    {MetroResponse.metroLine[v.subwayId]}{' '}
+                                    {v.updnLine}
+                                </Text>
+                                <Text>
+                                    {v.trainLineNm} {v.btrainNo}{' '}
+                                </Text>
+                                {v.barvlDt !== '0' ? (
+                                    <Text>
+                                        열차도착예정시간:{' '}
+                                        {expectedArrivalTime(v.barvlDt)}
+                                    </Text>
+                                ) : (
+                                    <></>
+                                )}
+                                <Text>현재 위치: {v.arvlMsg3}</Text>
+                                <Text>현재 상태: {v.arvlMsg2}</Text>
+                                <Text>
+                                    도착코드:{' '}
+                                    {MetroResponse.arrivalCode[v.arvlCd]}
+                                </Text>
+                            </View>
+                        </MetroArrivalInfoView>
                     ))}
                 </RealTimeStationArrivalView>
             </ScrollView>
@@ -135,20 +159,19 @@ const SafeAreaView = styled.SafeAreaView`
     background: #0080ff;
 `;
 
-const ScrollView = styled.ScrollView`
-`;
+const ScrollView = styled.ScrollView``;
 
 const SearchBar = styled.View`
     background: #0080ff;
     flex-direction: row;
     align-items: center;
-    
 `;
 
 const TextInputStyle = {
     width: '85%',
     height: 35,
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: '#00adff',
     borderRadius: 15,
     marginLeft: 10,
     padding: 7,
@@ -157,7 +180,7 @@ const TextInputStyle = {
 
 const RefreshBtn = styled.TouchableOpacity`
     position: absolute;
-    right: 10px;
+    right: 15px;
 `;
 
 const Hr = styled.View`
@@ -171,13 +194,12 @@ const RealTimeStationArrivalView = styled.View`
     align-items: center;
 `;
 
-const View = styled.View`
+const MetroArrivalInfoView = styled.View`
     margin-top: 10px;
-    border: 1px solid #135800;
     border-radius: 15px;
-    padding: 5px;
     width: 95%;
     background: #ffffff;
+    flex-direction: row;
 `;
 
 export default App;
